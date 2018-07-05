@@ -1,84 +1,103 @@
+## ----setup, include=FALSE------------------------------------------------
+knitr::opts_chunk$set(echo = TRUE)
+
 ## ------------------------------------------------------------------------
 library('dtangle')
 names(shen_orr_ex)
 
 ## ------------------------------------------------------------------------
-truth = shen_orr_ex$annotation$mixture
-head(truth)
-
-## ----cache=FALSE---------------------------------------------------------
-pure_samples <- lapply(1:3, function(i) {
-    which(truth[, i] == 1)
-})
-names(pure_samples) = colnames(truth)
-pure_samples
+head(shen_orr_ex$annotation$mixture)
 
 ## ------------------------------------------------------------------------
 Y <- shen_orr_ex$data$log
 Y[1:4,1:4]
 
 ## ------------------------------------------------------------------------
-marker_list = find_markers(Y,pure_samples,data_type="microarray-gene",marker_method='ratio')
+library('dtangle')
+data = shen_orr_ex$data$log
+mixture_proportions = shen_orr_ex$annotation$mixture
 
 ## ------------------------------------------------------------------------
-lapply(marker_list$L,head)
+mixture_proportions
 
 ## ------------------------------------------------------------------------
-lapply(marker_list$V,head)
+pure_samples = list(Liver=c(1,2,3),Brain=c(4,5,6),Lung=c(7,8,9))
+
+dt_out = dtangle(Y=data, pure_samples = pure_samples)
+
+matplot(mixture_proportions,dt_out$estimates, xlim = c(0,1),ylim=c(0,1),xlab="Truth",ylab="Estimates")
 
 ## ------------------------------------------------------------------------
-q = .1
-quantiles = lapply(marker_list$V,function(x)quantile(x,1-q))
-K = length(pure_samples)
-n_choose = sapply(1:K,function(i){max(which(marker_list$V[[i]] > quantiles[[i]]))})
-n_choose
+mixture_samples = data[-(1:9),]
+reference_samples = data[1:9,]
+
+dt_out = dtangle(Y=mixture_samples, reference=reference_samples,pure_samples = pure_samples)
+
+mixture_mixture_proportions = mixture_proportions[-(1:9),]
+matplot(mixture_mixture_proportions,dt_out$estimates, xlim = c(0,1),ylim=c(0,1),xlab="Truth",ylab="Estimates")
 
 ## ------------------------------------------------------------------------
-marks = marker_list$L
-dc <- dtangle(Y,pure_samples,n_choose,data_type='microarray-gene',markers=marks)
+ref_reduced = t(sapply(pure_samples,function(x)colMeans(reference_samples[x,,drop=FALSE])))
+
+dt_out = dtangle(Y=mixture_samples, reference=ref_reduced)
+
+matplot(mixture_mixture_proportions,dt_out$estimates, xlim = c(0,1),ylim=c(0,1),xlab="Truth",ylab="Estimates")
 
 ## ------------------------------------------------------------------------
-dc
-
-## ----results='asis',fig.height=5,fig.width=5-----------------------------
-phats <- dc$estimates
-plot(truth,phats,xlab="Truth",ylab="Estimates",xlim=c(0,1),ylim=c(0,1))
-abline(coef=c(0,1))
-
-## ----results='asis',fig.height=5,fig.width=5-----------------------------
-dc <- dtangle(Y,pure_samples,n_choose,gamma=.7,markers=marks)
-phats <- dc$estimates
-plot(truth,phats,xlab="Truth",ylab="Estimates",xlim=c(0,1),ylim=c(0,1))
-abline(coef=c(0,1))
+dt_out = dtangle(Y=mixture_samples, references = ref_reduced)
 
 ## ------------------------------------------------------------------------
-get_gamma('microarray-probe')
-get_gamma('microarray-gene')
-get_gamma('rna-seq')
+dt_out = dtangle(Y=mixture_samples, references = ref_reduced,marker_method = "diff")
 
-## ----results='asis',fig.height=5,fig.width=5-----------------------------
-dc <- dtangle(Y,pure_samples,n_choose=5,data_type='microarray-gene',markers=marks)
-phats <- dc$estimates
-plot(truth,phats,xlab="Truth",ylab="Estimates",xlim=c(0,1),ylim=c(0,1))
-abline(coef=c(0,1))
+## ------------------------------------------------------------------------
+dt_out$n_markers
 
-## ----results='asis',fig.height=5,fig.width=5-----------------------------
-dc <- dtangle(Y,pure_samples,n_choose=c(5,6,7),data_type='microarray-gene',markers=marks)
-phats <- dc$estimates
-plot(truth,phats,xlab="Truth",ylab="Estimates",xlim=c(0,1),ylim=c(0,1))
-abline(coef=c(0,1))
+## ------------------------------------------------------------------------
+dt_out = dtangle(Y=mixture_samples, references = ref_reduced,marker_method = "diff",n_markers=100)
 
-## ----results='asis',fig.height=5,fig.width=5-----------------------------
-dc <- dtangle(Y, pure_samples,n_choose,data_type='microarray-gene',marker_method = 'ratio')
-phats <- dc$estimate
-plot(truth,phats,xlab="Truth",ylab="Estimates",xlim=c(0,1),ylim=c(0,1))
-abline(coef=c(0,1))
+dt_out$n_markers
 
-dc2 <- dtangle(Y, pure_samples,n_choose,data_type='microarray-gene',marker_method = 'diff')
-phats2 <- dc2$estimates
-points(truth,phats2,col='blue')
+## ------------------------------------------------------------------------
+dt_out = dtangle(Y=mixture_samples, references = ref_reduced,marker_method = "diff",n_markers=c(100,150,50))
 
-dc3 <- dtangle(Y, pure_samples,n_choose,data_type='microarray-gene',marker_method = 'regression')
-phats3 <- dc3$estimates
-points(truth,phats3,col='red')
+dt_out$n_markers
+
+## ------------------------------------------------------------------------
+dt_out = dtangle(Y=mixture_samples, references = ref_reduced,marker_method = "diff",n_markers=.075)
+
+dt_out$n_markers
+
+dt_out = dtangle(Y=mixture_samples, references = ref_reduced,marker_method = "diff",n_markers=c(.1,.15,.05))
+
+dt_out$n_markers
+
+## ------------------------------------------------------------------------
+marker_genes = list(c(120,253,316),
+                    c(180,429,14),
+                    c(1,109,206))
+
+dt_out = dtangle(Y=mixture_samples, references = ref_reduced,markers=marker_genes)
+dt_out$n_markers
+
+## ------------------------------------------------------------------------
+mrkrs = find_markers(Y=mixture_samples, references = ref_reduced)
+names(mrkrs)
+
+## ------------------------------------------------------------------------
+dt_out = dtangle(Y = mixture_samples,references = ref_reduced,markers=mrkrs,n_markers=.1)
+
+## ------------------------------------------------------------------------
+dt_out = dtangle(Y = mixture_samples,references = ref_reduced,gamma=.9)
+
+## ------------------------------------------------------------------------
+dt_out = dtangle(Y = mixture_samples,references = ref_reduced,data_type="microarray-gene")
+
+## ------------------------------------------------------------------------
+dtangle:::gma
+
+## ------------------------------------------------------------------------
+dt_out = dtangle(Y = mixture_samples,references = ref_reduced,summary_fn=median)
+head(dt_out$estimates)
+dt_out = dtangle(Y = mixture_samples,references = ref_reduced,summary_fn=mean)
+head(dt_out$estimates)
 
