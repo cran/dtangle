@@ -12,7 +12,7 @@
 
 <meta name="author" content="Greg Hunt" />
 
-<meta name="date" content="2018-07-05" />
+<meta name="date" content="2018-11-09" />
 
 <title>Basic Deconvolution using dtangle</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Basic Deconvolution using dtangle</h1>
 <h4 class="author"><em>Greg Hunt</em></h4>
-<h4 class="date"><em>2018-07-05</em></h4>
+<h4 class="date"><em>2018-11-09</em></h4>
 
 
 
@@ -207,7 +207,8 @@ dt_out =<span class="st"> </span><span class="kw">dtangle</span>(<span class="dt
 <p>the default is to use “ratio”.</p>
 <p>The argument n_markers specifies how many marker genes to use. If unspecified then dtangle uses the top 10% of genes (as ranked according to marker_method) as markers.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dt_out<span class="op">$</span>n_markers</code></pre></div>
-<pre><code>## [1] 20 20 20</code></pre>
+<pre><code>## Liver Brain  Lung 
+##    20    20    20</code></pre>
 <p>The number of marker genes can be explicitly specified by setting n_markers:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dt_out =<span class="st"> </span><span class="kw">dtangle</span>(<span class="dt">Y=</span>mixture_samples, <span class="dt">references =</span> ref_reduced,<span class="dt">marker_method =</span> <span class="st">&quot;diff&quot;</span>,<span class="dt">n_markers=</span><span class="dv">100</span>)
 
@@ -275,7 +276,7 @@ dt_out<span class="op">$</span>n_markers</code></pre></div>
 <p>There is a final optional parameter summary_fn which controls how dtangle aggregates the gene expressions for estimation. dtangle is a very robust algorithm and so the default summary function is the mean. One can specify the median as a more robust option, or any other summary statistic if so they desire. We recommend either the mean or the median.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dt_out =<span class="st"> </span><span class="kw">dtangle</span>(<span class="dt">Y =</span> mixture_samples,<span class="dt">references =</span> ref_reduced,<span class="dt">summary_fn=</span>median)
 <span class="kw">head</span>(dt_out<span class="op">$</span>estimates)</code></pre></div>
-<pre><code>##                 [,1]       [,2]      [,3]
+<pre><code>##                Liver      Brain      Lung
 ## GSM495218 0.05229139 0.29300675 0.6547019
 ## GSM495219 0.05505613 0.29357471 0.6513692
 ## GSM495220 0.05398451 0.29489946 0.6511160
@@ -284,7 +285,7 @@ dt_out<span class="op">$</span>n_markers</code></pre></div>
 ## GSM495223 0.64332527 0.07615796 0.2805168</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dt_out =<span class="st"> </span><span class="kw">dtangle</span>(<span class="dt">Y =</span> mixture_samples,<span class="dt">references =</span> ref_reduced,<span class="dt">summary_fn=</span>mean)
 <span class="kw">head</span>(dt_out<span class="op">$</span>estimates)</code></pre></div>
-<pre><code>##                 [,1]       [,2]      [,3]
+<pre><code>##                Liver      Brain      Lung
 ## GSM495218 0.04807655 0.30980298 0.6421205
 ## GSM495219 0.05213084 0.30896051 0.6389086
 ## GSM495220 0.05029034 0.30536233 0.6443473
